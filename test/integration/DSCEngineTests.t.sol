@@ -12,7 +12,6 @@ import {console} from "forge-std/console.sol";
 import {MockV3Aggregator} from "../mocks/MockV3Aggregator.t.sol";
 
 contract DSCEngineTests is Test {
-
     uint256 private constant AMOUNT_COLLATERAL = 10 ether;
     DSCEngine private s_engine;
     DecentralizedStableCoin private s_dsc;
@@ -78,7 +77,10 @@ contract DSCEngineTests is Test {
         assertEq(mockPriceFeed.latestAnswer(), 1000e8);
     }
 
-    function testChangingAnswerForPriceFeedAffectsAccountInformation() public depositedCollateral(s_user, s_weth, AMOUNT_COLLATERAL) {
+    function testChangingAnswerForPriceFeedAffectsAccountInformation()
+        public
+        depositedCollateral(s_user, s_weth, AMOUNT_COLLATERAL)
+    {
         vm.startPrank(s_user);
         uint256 dscToMint = 1000 ether;
         s_engine.mintDsc(dscToMint);
@@ -112,10 +114,13 @@ contract DSCEngineTests is Test {
         assertTrue(s_engine.isHealthFactorBroken());
         vm.stopPrank();
     }
- 
+
     /* Deposit */
 
-    function testCanDepositCollateralAndGetAccountInfo() public depositedCollateral(s_user, s_weth, AMOUNT_COLLATERAL) {
+    function testCanDepositCollateralAndGetAccountInfo()
+        public
+        depositedCollateral(s_user, s_weth, AMOUNT_COLLATERAL)
+    {
         vm.startPrank(s_user);
         (uint256 totalDscMinted, uint256 totalCollateralValueInUsd) = s_engine.getAccountInformation();
         uint256 collateralDeposited = s_engine.getTokenAmountFromUsd(s_weth, totalCollateralValueInUsd);
@@ -146,11 +151,15 @@ contract DSCEngineTests is Test {
 
     /* Liquidation */
 
-    function testLiquidationImprovesHealthFactor() public depositedCollateral(s_user, s_weth, AMOUNT_COLLATERAL) depositedCollateral(s_liquidator, s_weth, AMOUNT_COLLATERAL) {
+    function testLiquidationImprovesHealthFactor()
+        public
+        depositedCollateral(s_user, s_weth, AMOUNT_COLLATERAL)
+        depositedCollateral(s_liquidator, s_weth, AMOUNT_COLLATERAL)
+    {
         vm.startPrank(s_user);
         s_engine.mintDsc(10000 ether);
         MockV3Aggregator mockPriceFeed = MockV3Aggregator(s_wethUsdPriceFeed);
-        mockPriceFeed.updateAnswer(1500e8); 
+        mockPriceFeed.updateAnswer(1500e8);
         uint256 healthFactorBefore = s_engine.getHealthFactor();
         uint256 dscToBurnToImproveHealthFactor = 1000 ether;
         vm.stopPrank();
@@ -165,7 +174,7 @@ contract DSCEngineTests is Test {
     }
 
     /* Redeem Collateral */
-    
+
     function testRedeemCollateralIsSuccessful() public depositedCollateral(s_user, s_weth, AMOUNT_COLLATERAL) {
         uint256 depositedColalteralBefore = s_engine.getDepositedCollateral(s_user, s_weth);
         vm.startPrank(s_user);
@@ -193,16 +202,24 @@ contract DSCEngineTests is Test {
         assertEq(depositedColalteralBefore, AMOUNT_COLLATERAL);
         assertEq(s_engine.getDepositedCollateral(s_user, s_weth), 0);
     }
-    
+
     /* Account Collateral Value */
 
-    function testGetAccountCollateralValueInUsdWithOneCollateralDeposited() public depositedCollateral(s_user, s_weth, AMOUNT_COLLATERAL) {
+    function testGetAccountCollateralValueInUsdWithOneCollateralDeposited()
+        public
+        depositedCollateral(s_user, s_weth, AMOUNT_COLLATERAL)
+    {
         uint256 expectedCollateralValueInUsd = AMOUNT_COLLATERAL * 2000e8 * 1e10 / 1e18;
         assertEq(s_engine.getAccountCollateralValueInUsd(s_user), expectedCollateralValueInUsd);
     }
 
-    function testGetAccountCollateralValueInUsdWithMultipleCollaterals() public depositedCollateral(s_user, s_weth, AMOUNT_COLLATERAL) depositedCollateral(s_user, s_wbtc, AMOUNT_COLLATERAL) {
-        uint256 expectedCollateralValueInUsd = (AMOUNT_COLLATERAL * 2000e8 * 1e10) / 1e18 + (AMOUNT_COLLATERAL * 2000e8 * 1e10) / 1e18;
+    function testGetAccountCollateralValueInUsdWithMultipleCollaterals()
+        public
+        depositedCollateral(s_user, s_weth, AMOUNT_COLLATERAL)
+        depositedCollateral(s_user, s_wbtc, AMOUNT_COLLATERAL)
+    {
+        uint256 expectedCollateralValueInUsd =
+            (AMOUNT_COLLATERAL * 2000e8 * 1e10) / 1e18 + (AMOUNT_COLLATERAL * 2000e8 * 1e10) / 1e18;
         assertEq(s_engine.getAccountCollateralValueInUsd(s_user), expectedCollateralValueInUsd);
     }
 
@@ -240,12 +257,17 @@ contract DSCEngineTests is Test {
         vm.stopPrank();
     }
 
-    function testRedeemCollateralRevertsIfHealthFactorIsBroken() public depositedCollateral(s_user, s_weth, AMOUNT_COLLATERAL) {
+    function testRedeemCollateralRevertsIfHealthFactorIsBroken()
+        public
+        depositedCollateral(s_user, s_weth, AMOUNT_COLLATERAL)
+    {
         vm.startPrank(s_user);
         s_engine.mintDsc(10000 ether);
         console.log("Health factor: ", s_engine.getHealthFactor());
         uint256 expectedHealthFactor = 9e17;
-        vm.expectRevert(abi.encodeWithSelector(DSCEngine.DSCEngine__HealthFactorIsBroken.selector, expectedHealthFactor));
+        vm.expectRevert(
+            abi.encodeWithSelector(DSCEngine.DSCEngine__HealthFactorIsBroken.selector, expectedHealthFactor)
+        );
         s_engine.redeemCollateral(s_weth, 1 ether);
         vm.stopPrank();
     }
@@ -271,7 +293,7 @@ contract DSCEngineTests is Test {
         s_engine.mintDsc(0);
         vm.stopPrank();
     }
-    
+
     function testBurnDscRevertsIfDscToBurnIsZero() public {
         vm.startPrank(s_user);
         vm.expectRevert(DSCEngine.DSCEngine__MustBeGreaterThanZero.selector);
@@ -306,7 +328,10 @@ contract DSCEngineTests is Test {
         vm.stopPrank();
     }
 
-    function testLiquidationRevertsIfHealthFactorIsNotBroken() public depositedCollateral(s_user, s_weth, AMOUNT_COLLATERAL) {
+    function testLiquidationRevertsIfHealthFactorIsNotBroken()
+        public
+        depositedCollateral(s_user, s_weth, AMOUNT_COLLATERAL)
+    {
         vm.startPrank(s_user);
         s_engine.mintDsc(10000 ether);
         console.log("Health factor: ", s_engine.getHealthFactor());
@@ -325,7 +350,11 @@ contract DSCEngineTests is Test {
         vm.stopPrank();
     }
 
-    function testLiquidationRevertsIfLiquidatorIsBrokenAfterLiquidation() public depositedCollateral(s_user, s_weth, AMOUNT_COLLATERAL) depositedCollateral(s_liquidator, s_weth, AMOUNT_COLLATERAL) {
+    function testLiquidationRevertsIfLiquidatorIsBrokenAfterLiquidation()
+        public
+        depositedCollateral(s_user, s_weth, AMOUNT_COLLATERAL)
+        depositedCollateral(s_liquidator, s_weth, AMOUNT_COLLATERAL)
+    {
         vm.startPrank(s_user);
         s_engine.mintDsc(10000 ether);
         vm.stopPrank();
@@ -335,8 +364,10 @@ contract DSCEngineTests is Test {
         MockV3Aggregator mockPriceFeed = MockV3Aggregator(s_wethUsdPriceFeed);
         mockPriceFeed.updateAnswer(1500e8);
         uint256 liquidatorHealthFactor = s_engine.getHealthFactor();
-        vm.expectRevert(abi.encodeWithSelector(DSCEngine.DSCEngine__HealthFactorIsBroken.selector, liquidatorHealthFactor));
+        vm.expectRevert(
+            abi.encodeWithSelector(DSCEngine.DSCEngine__HealthFactorIsBroken.selector, liquidatorHealthFactor)
+        );
         s_engine.liquidate(s_weth, s_user, 10000 ether);
         vm.stopPrank();
-    }   
+    }
 }

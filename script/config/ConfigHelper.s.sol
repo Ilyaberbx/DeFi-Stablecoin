@@ -22,7 +22,7 @@ contract ConfigHelper is Script {
     NetworkConfig public s_activeNetworkConfig;
 
     constructor() {
-        if(block.chainid == 11155111) {
+        if (block.chainid == 11155111) {
             s_activeNetworkConfig = getSepoliaNetworkConfig();
         } else {
             s_activeNetworkConfig = getOrCreateAnvilConfig();
@@ -40,7 +40,7 @@ contract ConfigHelper is Script {
     }
 
     function getOrCreateAnvilConfig() public returns (NetworkConfig memory) {
-        if(s_activeNetworkConfig.wethUsdPriceFeed != address(0)) {
+        if (s_activeNetworkConfig.wethUsdPriceFeed != address(0)) {
             return s_activeNetworkConfig;
         }
 
@@ -58,5 +58,4 @@ contract ConfigHelper is Script {
             deployerKey: vm.envUint("ANVIL_PRIVATE_KEY")
         });
     }
-
 }
