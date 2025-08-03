@@ -26,6 +26,7 @@ contract DSCEngineTests is Test {
     address private s_liquidator = makeAddr("liquidator");
 
     event CollateralDeposited(address indexed user, address indexed token, uint256 indexed amount);
+    event CollateralRedeemed(address indexed from, address indexed to, address indexed token, uint256 amount);
 
     modifier depositedCollateral(address user, address collateral, uint256 amount) {
         vm.startPrank(user);
@@ -172,6 +173,14 @@ contract DSCEngineTests is Test {
         vm.stopPrank();
         assertEq(depositedColalteralBefore, AMOUNT_COLLATERAL);
         assertEq(s_engine.getDepositedCollateral(s_user, s_weth), 0);
+    }
+
+    function testRedeemCollateralEmitsEvent() public depositedCollateral(s_user, s_weth, AMOUNT_COLLATERAL) {
+        vm.startPrank(s_user);
+        vm.expectEmit(true, true, true, false);
+        emit CollateralRedeemed(s_user, s_user, s_weth, AMOUNT_COLLATERAL);
+        s_engine.redeemCollateral(s_weth, AMOUNT_COLLATERAL);
+        vm.stopPrank();
     }
 
     function testRedeemCollateralForDscIsSuccessful() public depositedCollateral(s_user, s_weth, AMOUNT_COLLATERAL) {
@@ -329,6 +338,5 @@ contract DSCEngineTests is Test {
         vm.expectRevert(abi.encodeWithSelector(DSCEngine.DSCEngine__HealthFactorIsBroken.selector, liquidatorHealthFactor));
         s_engine.liquidate(s_weth, s_user, 10000 ether);
         vm.stopPrank();
-    }
-    
+    }   
 }
