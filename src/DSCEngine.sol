@@ -6,7 +6,7 @@ import {DecentralizedStableCoin} from "./DecentralizedStableCoin.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
-
+import {OracleLib} from "./libraries/OracleLib.sol";
 /**
  * @title DSCEngine (Decentralized Stablecoin Engine)
  * @author Illia Verbanov
@@ -174,6 +174,24 @@ contract DSCEngine is ReentrancyGuard {
     }
 
     /**
+     * @notice Returns the allowed collateral tokens
+     * @return The allowed collateral tokens
+     */
+    function getAllowedCollateralTokens() external view returns (address[] memory) {
+        return s_collateralTokens;
+    }
+
+    /**
+     * @notice Returns the collateral balance of a user
+     * @param user The address of the user to get the collateral balance of
+     * @param tokenCollateralAddress The address of the token to get the collateral balance of
+     * @return The collateral balance of the user
+     */
+    function getCollateralBalanceOfUser(address user, address tokenCollateralAddress) external view returns (uint256) {
+        return s_collateralDeposited[user][tokenCollateralAddress];
+    }
+
+    /**
      * @notice Returns the total amount of DSC minted and the total collateral value of the sender
      * @return totalDscMinted The total amount of DSC minted by the sender worth of USD
      * @return totalCollateralValueInUsd The total collateral value of the sender worth of USD
@@ -208,6 +226,10 @@ contract DSCEngine is ReentrancyGuard {
         return _isHealthFactorBroken(msg.sender);
     }
 
+    function getCollateralTokenPriceFeed(address token) external view returns (address) {
+        return s_priceFeeds[token];
+    }
+
     /**
      * @notice Returns the amount of tokens that are equivalent to the given USD amount
      * @param token The address of the token to get the amount of
@@ -216,7 +238,7 @@ contract DSCEngine is ReentrancyGuard {
      */
     function getTokenAmountFromUsd(address token, uint256 usdAmountInWei) public view returns (uint256) {
         AggregatorV3Interface priceFeed = AggregatorV3Interface(s_priceFeeds[token]);
-        (, int256 price,,,) = priceFeed.latestRoundData();
+        (, int256 price,,,) = OracleLib.stalePriceCheck(priceFeed);
         return (usdAmountInWei * PRECISION) / (uint256(price) * ADDITIONAL_FEED_PRECISION);
     }
 
@@ -270,7 +292,7 @@ contract DSCEngine is ReentrancyGuard {
         for (uint256 i = 0; i < s_collateralTokens.length; i++) {
             address token = s_collateralTokens[i];
             uint256 amount = s_collateralDeposited[user][token];
-            if (amount <= 0) {
+            if (amount == 0) {
                 continue;
             }
             totalCollateralValueInUsd += getUsdValue(token, amount);
@@ -284,9 +306,9 @@ contract DSCEngine is ReentrancyGuard {
      * @param amount The amount of the token to get the price of
      * @return The USD price of the token
      */
-    function getUsdValue(address token, uint256 amount) public view moreThanZero(amount) returns (uint256) {
+    function getUsdValue(address token, uint256 amount) public view returns (uint256) {
         AggregatorV3Interface priceFeed = AggregatorV3Interface(s_priceFeeds[token]);
-        (, int256 price,,,) = priceFeed.latestRoundData();
+        (, int256 price,,,) = OracleLib.stalePriceCheck(priceFeed);
         return ((uint256(price) * ADDITIONAL_FEED_PRECISION) * amount) / PRECISION;
     }
 
