@@ -35,10 +35,10 @@ contract HandlerBasedTests is Test {
         i_engine.depositCollateral(address(collateral), amount);
         vm.stopPrank();
 
-        if(_isUserDeposited(msg.sender)) {
+        if (_isUserDeposited(msg.sender)) {
             return;
         }
-        
+
         s_usersDeposited.push(msg.sender);
     }
 
@@ -54,7 +54,8 @@ contract HandlerBasedTests is Test {
         uint256 certainCollateralValueInUsd = i_engine.getUsdValue(address(collateral), certainCollateralAmount);
         uint256 amountToRedeemInUsd = i_engine.getUsdValue(address(collateral), amount);
         vm.assume(amountToRedeemInUsd <= certainCollateralValueInUsd);
-        int256 maxCertainCollateralToRedeem = maxCollateralToRedeemInUsd - (maxCollateralToRedeemInUsd - int256(certainCollateralValueInUsd));
+        int256 maxCertainCollateralToRedeem =
+            maxCollateralToRedeemInUsd - (maxCollateralToRedeemInUsd - int256(certainCollateralValueInUsd));
         vm.assume(maxCertainCollateralToRedeem > 0);
         vm.assume(amountToRedeemInUsd <= uint256(maxCertainCollateralToRedeem));
         i_engine.redeemCollateral(address(collateral), amount);
@@ -62,7 +63,7 @@ contract HandlerBasedTests is Test {
     }
 
     function mintDsc(uint256 amount, uint256 userSeed) public {
-        if(s_usersDeposited.length == 0) {
+        if (s_usersDeposited.length == 0) {
             return;
         }
 
@@ -79,16 +80,16 @@ contract HandlerBasedTests is Test {
     }
 
     function _getCollateralFromSeed(uint256 seed) private view returns (ERC20Mock) {
-        if(seed % 2 == 0) {
+        if (seed % 2 == 0) {
             return i_weth;
         }
 
         return i_wbtc;
     }
 
-     function _isUserDeposited(address user) private view returns (bool) {
-        for(uint256 i = 0; i < s_usersDeposited.length; i++) {
-            if(s_usersDeposited[i] == user) {
+    function _isUserDeposited(address user) private view returns (bool) {
+        for (uint256 i = 0; i < s_usersDeposited.length; i++) {
+            if (s_usersDeposited[i] == user) {
                 return true;
             }
         }

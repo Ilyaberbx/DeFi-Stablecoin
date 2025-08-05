@@ -27,10 +27,11 @@ contract InvariantsTests is Test {
     function setUp() external {
         DeployDSCSystem deployer = new DeployDSCSystem();
         (s_dsc, s_engine, s_configHelper) = deployer.run();
-        (s_wethUsdPriceFeed, s_wbtcUsdPriceFeed, s_wethToken, s_wbtcToken, s_deployerKey) = s_configHelper.s_activeNetworkConfig();
+        (s_wethUsdPriceFeed, s_wbtcUsdPriceFeed, s_wethToken, s_wbtcToken, s_deployerKey) =
+            s_configHelper.s_activeNetworkConfig();
         s_handler = new HandlerBasedTests(s_engine, s_dsc);
         targetContract(address(s_handler));
-    }  
+    }
 
     function invariant_protocolMustHaveMoreValueThanTotalSupply() public view {
         uint256 totalSupply = s_dsc.totalSupply();
