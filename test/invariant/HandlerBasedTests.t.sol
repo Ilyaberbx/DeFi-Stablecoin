@@ -6,7 +6,6 @@ import {Test} from "forge-std/Test.sol";
 import {DSCEngine} from "../../src/DSCEngine.sol";
 import {DecentralizedStableCoin} from "../../src/DecentralizedStableCoin.sol";
 import {ERC20Mock} from "../mocks/ERC20Mock.t.sol";
-import {MockV3Aggregator} from "../mocks/MockV3Aggregator.t.sol";
 
 contract HandlerBasedTests is Test {
     uint256 private constant MAX_DEPOSIT_AMOUNT = type(uint96).max;

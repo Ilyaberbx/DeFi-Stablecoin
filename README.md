@@ -148,8 +148,43 @@ forge test
 
 ### Deploy
 
+#### Setup Environment Variables
+
+Create a `.env` file (NEVER commit this file!):
+
 ```bash
-forge script script/DeployDSCSystem.s.sol --rpc-url $RPC_URL --private-key $PRIVATE_KEY --broadcast
+# .env
+SEPOLIA_PRIVATE_KEY=0x123abc...  # Your private key for Sepolia testnet
+SEPOLIA_RPC_URL=https://sepolia.infura.io/v3/YOUR_API_KEY
+ANVIL_PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
+```
+
+#### Deploy to Sepolia
+
+```bash
+# Load environment variables and deploy
+source .env
+forge script script/DeployDSCSystem.s.sol --rpc-url $SEPOLIA_RPC_URL --broadcast --verify
+
+# Or using --env-file flag
+forge script script/DeployDSCSystem.s.sol --env-file .env --rpc-url $SEPOLIA_RPC_URL --broadcast
+```
+
+#### Deploy Locally (Anvil)
+
+```bash
+# Start local blockchain
+anvil
+
+# Deploy (in another terminal)
+forge script script/DeployDSCSystem.s.sol --rpc-url http://localhost:8545 --broadcast
+```
+
+#### Production Deployment (Hardware Wallet - RECOMMENDED)
+
+```bash
+# Using Ledger hardware wallet for mainnet
+forge script script/DeployDSCSystem.s.sol --rpc-url $MAINNET_RPC_URL --ledger --broadcast
 ```
 
 ## 📊 System Parameters
@@ -176,6 +211,36 @@ forge script script/DeployDSCSystem.s.sol --rpc-url $RPC_URL --private-key $PRIV
 - **Integer Overflow**: Solidity 0.8+ built-in protection
 - **Access Control**: Owner-only functions for critical operations
 - **Input Validation**: Comprehensive parameter checking
+
+### Private Key Security
+
+⚠️ **CRITICAL**: Never commit private keys to version control!
+
+- **Environment Variables**: Private keys stored in `.env` files (git-ignored)
+- **Hardware Wallets**: Use Ledger/Trezor for production deployments
+- **Key Management**: Separate keys for different environments (dev/test/prod)
+- **Secure Defaults**: Use `vm.envOr()` with safe fallbacks
+
+#### ✅ **Secure Setup**
+
+```bash
+# Create .env file (git-ignored)
+echo "SEPOLIA_PRIVATE_KEY=0x123..." > .env
+echo ".env" >> .gitignore
+
+# Use environment variables in scripts
+forge script --env-file .env --rpc-url $RPC_URL --broadcast
+```
+
+#### ❌ **Never Do This**
+
+```solidity
+// DON'T: Hardcode private keys in contracts
+uint256 deployerKey = 0x123abc456def...;
+
+// DON'T: Commit private keys to git
+git add .env  // if .env contains private keys
+```
 
 ### Economic Security
 
@@ -228,25 +293,7 @@ DeFi-Stablecoin/
 
 ## 🌐 Supported Networks
 
-- Ethereum Mainnet
-- Sepolia Testnet
-- Local Development (Anvil)
-
-## ⚠️ Risk Factors
-
-1. **Collateral Volatility**: Crypto collateral can experience significant price swings
-2. **Oracle Dependency**: System relies on Chainlink price feeds
-3. **Liquidation Risk**: Positions may be liquidated during market volatility
-4. **Smart Contract Risk**: Potential bugs or vulnerabilities
-5. **Regulatory Risk**: Changing regulatory landscape for DeFi
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+- Any EVM compatible network on the planet xd
 
 ## 📄 License
 
